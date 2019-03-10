@@ -112,11 +112,11 @@ No other fields.
 
 Not needed for initial implementation
 
-### File Deleted (fileDeleted) (Host/Secondary) (Server)
+#### File Deleted (fileDeleted) (Host/Secondary) (Server)
 
 Not needed for initial implementation
 
-### Error (error) (Host/Secondary) (Server)
+#### Error (error) (Host/Secondary) (Server)
 
 Sent when an error is encountered
 
