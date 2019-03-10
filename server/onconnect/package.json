@@ -1,0 +1,9 @@
+{
+  "name": "on-connect",
+  "version": "1.0.0",
+  "description": "Lambda function that triggers on connect.",
+  "main": "src/app.js",
+  "dependencies": {
+    "aws-sdk": "^2.418.0"
+  }
+}
