@@ -4,134 +4,125 @@ A tool to make moving files simpler
 
 ## WebSocket Protocol (v0)
 
-MessageName (Identifier) (Permission: Host/Secondary) (Source: Server/Client)
+MessageName (Type) (Permission: Host/Secondary) (Source: Server/Client)
 
-All messages start with a single byte to represent the message type. They are then followed by the message contents. Generally if there is a response then the identifier byte will be the same. The client generally sends lowercase bytes and the server generally sends uppercase bytes.
+All messages are in json format and contain a field type which corresponds to each message below. Some messages have other fields.
 
 To support clients without websockets there are plans to create a separate http protocol.
 
-### Formats
-
-* int [4] - 4 Byte integer.
-* long [8] - 8 Byte integer. Usually used to represent datetimes.
-* byte [1] - A single byte.
-* binary [x] - a binary array *x* bytes long.
-* string [x] - The string will start with a 4 byte integer describing the length of the string in bytes followed by the bytes of the string. All strings are in UTF-8.
-
 ### Messages
 
-#### Create New Session (n) (Host) (Client)
+#### Create New Session (newSession) (Host) (Client)
 
-```
-    byte [1]     message type
-```
+Creates a new session. Responded to with `newSessionCreated` or `error`.
 
-#### New Session Created (N) (Host) (Server)
+No other fields.
 
-```
-    byte [1]     message type
-    binary [16]  SessionId
-    binary [16]  HostKey
-    long [8]     expiry datetime, epoch
-    int [4]      max number of files
-    int [4]      max file size in bytes
-```
+#### New Session Created (newSessionCreated) (Host) (Server)
 
-#### Reconnect (r) (Host) (Client)
+Success response to `newSession`.
+
+| field       | type     | description                                                          |
+|-------------|----------|----------------------------------------------------------------------|
+| sessionId   | String   | Unique 32 character hex string. Identifies the new session           |
+| hostKey     | String   | Unique 32 character hex string. Used by host to identify themselves. |
+| expiry      | DateTime | When the session expires.                                            |
+| maxFiles    | Number   | Maximum number of files allowed in this session.                     |
+| maxSize     | Number   | Maximum size of any of the files allowed in this session in bytes.   |
+
+#### Reconnect (reconnect) (Host) (Client)
 
 Sent when host reconnects to a session.
 
-```
-    byte [1]     message type
-    binary [16]  SessionId
-    binary [16]  HostKey
-```
+| field       | type     | description                             |
+|-------------|----------|-----------------------------------------|
+| sessionId   | String   | Identifies the session to reconnect to. |
+| hostKey     | String   | Used by host to identify themselves.    |
 
-#### Connect (c) (Secondary) (Client)
+#### Connect (connect) (Secondary) (Client)
 
 Sent when a new secondary connects.
 
-```
-    byte [1]     message type
-    binary [16]  SessionId
-```
+| field       | type     | description                     |
+|-------------|----------|---------------------------------|
+| sessionId   | String   | Identifies the session to join. |
 
-#### Session has ended (X) (Host/Secondary) (Client)
+#### Session has ended (ended) (Host/Secondary) (Server)
 
 Sent in response to connect or reconnect if the session has already ended.
 
-```
-    byte [1]     message type
-```
+No other fields.
 
-#### Session data (C) (Host/Secondary) ()
+#### Session data (sessionData) (Host/Secondary) (Server)
 
 Sent in response to reconnect or connect.
 
-```
-    byte [1]     message type
-    long [8]     expiry datetime, epoch
-    int [4]      max number of files
-    int [4]      max file size in bytes
-    int [4]      number of files
-  For each file
-    binary[16]   fileId
-    string [x]   filename
-    int [4]      size in bytes
-```
+| field       | type         | description                                                        |
+|-------------|--------------|--------------------------------------------------------------------|
+| expiry      | DateTime     | When the session expires.                                          |
+| maxFiles    | Number       | Maximum number of files allowed in this session.                   |
+| maxSize     | Number       | Maximum size of any of the files allowed in this session in bytes. |
+| files       | List of file | List of files, already uploaded to this session.                   |
 
-#### New File (u) (Host/Secondary) (Server)
+file:
+
+| field    | type     | description                      |
+|----------|----------|----------------------------------|
+| fileId   | String   | Globally unique id for the file. |
+| filename | String   | Original name of the file.       |
+| size     | Number   | Size of the file in bytes.       |
+
+#### New File (newFile) (Host/Secondary) (Server)
 
 Sent for each new file uploaded to all clients. Even the client who uploaded the file.
 
-```
-    byte [1]     message type
-    binary[16]   fileId
-    string [x]   filename
-    int [4]      size in bytes
-```
+| field    | type     | description                      |
+|----------|----------|----------------------------------|
+| fileId   | String   | Globally unique id for the file. |
+| filename | String   | Original name of the file.       |
+| size     | Number   | Size of the file in bytes.       |
 
-#### Extend Session (e) (Host) (Client)
+#### Extend Session (extendSession) (Host) (Client)
 
 Will extend session by expected.
 
-```
-    byte [1]     message type
-```
+No other fields.
 
-#### Session Extended (E) (Host/Secondary) (Server)
+#### Session Extended (sessionExtended) (Host/Secondary) (Server)
 
 Sent to all clients (including host).
 
-```
-    byte [1]     message type
-    long [8]     expiry datetime, epoch
-```
+| field    | type     | description                      |
+|----------|----------|----------------------------------|
+| expiry      | DateTime | When the session expires.     |
 
-#### Ping (p) (Host/Secondary) (Client)
+#### Ping (ping) (Host/Secondary) (Client)
 
 Sent from client to check connection is still okay. Should be sent every minute if other messages have been sent or received.
 
-```
-    byte [1]     message type
-```
+No other fields.
 
-#### Pong (P) (Host/Secondary) (Server)
+#### Pong (pong) (Host/Secondary) (Server)
 
 Sent from the server in response.
 
-```
-    byte [1]     message type
-```
+No other fields.
 
-#### Delete File (d) (Host) (Client)
+#### Delete File (deleteFile) (Host) (Client)
 
 Not needed for initial implementation
 
-### File Deleted (D) (Host/Secondary) (Server)
+### File Deleted (fileDeleted) (Host/Secondary) (Server)
 
 Not needed for initial implementation
 
+### Error (error) (Host/Secondary) (Server)
+
+Sent when an error is encountered
+
+| field       | type   | description                                    |
+|-------------|--------|------------------------------------------------|
+| code        | String | describes the type of problem. E.G. No session |
 
 ## HTTP Protocol
 
@@ -141,11 +132,9 @@ To make upload and download progress bars simpler uploading and downloading is d
 
 Each possible error is listed below with possible codes.
 
-```
-{
-    "code": ""
-}
-```
+| code        | description                                    |
+|-------------|------------------------------------------------|
+| TODO        |                                                |
 
 ### Upload File
 
@@ -189,3 +178,11 @@ GET /sessions/{sessionId}/files/{fileId}
 ## String representation of binary ids
 
 Convert the binary value to hex
+
+## Url Structure
+
+shyft.to -> redirects to shyftto.com
+
+`shyftto.com` - static html content
+`ws.shyftto.com` - all websockets
+`files.shyftto.com` - all file transfers
