@@ -1,7 +1,7 @@
 {
-  "name": "send-message",
+  "name": "new-session",
   "version": "1.0.0",
-  "description": "handle send message from web sockets.",
+  "description": "Handle newSession message.",
   "main": "src/app.js",
   "dependencies": {
     "aws-sdk": "^2.418.0"

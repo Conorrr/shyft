@@ -3,12 +3,20 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   shyft-websockets-app
   SAM Template for shyft-websockets-app that has the DynamoDB table and Lambda
-  functions needed to implement .
+  functions needed to implement websocket api.
 Parameters:
-  TableName:
+  ConnectionTableName:
     Type: String
     Default: 'shyft_connections'
-    Description: (Required) The name of the new DynamoDB to store connection identifiers for each connected clients. Minimum 3 characters
+    Description: (Required) The name of the new DynamoDB to store session information.
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+  SessionTableName:
+    Type: String
+    Default: 'shyft_sessions'
+    Description: (Required) The name of the new DynamoDB to store session information.
     MinLength: 3
     MaxLength: 50
     AllowedPattern: ^[A-Za-z_]+$
@@ -20,7 +28,7 @@ Resources:
     Properties:
       Name: ShyftWebSocket
       ProtocolType: WEBSOCKET
-      RouteSelectionExpression: "$request.body.message"
+      RouteSelectionExpression: "$request.body.type"
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -65,7 +73,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref ShyftWebSocket
-      RouteKey: sendMessage
+      RouteKey: newSession
       AuthorizationType: NONE
       OperationName: SendRoute
       Target: !Join
@@ -80,7 +88,7 @@ Resources:
       IntegrationType: AWS_PROXY
       IntegrationUri: 
         Fn::Sub:
-            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendMessageFunction.Arn}/invocations
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NewSessionFunction.Arn}/invocations
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
@@ -96,6 +104,24 @@ Resources:
       Description: Prod Stage
       DeploymentId: !Ref Deployment
       ApiId: !Ref ShyftWebSocket
+  SessionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: "sessionId"
+        AttributeType: "S"
+      KeySchema:
+      - AttributeName: "sessionId"
+        KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: True
+      TableName: !Ref SessionTableName
+      TimeToLiveSpecification: 
+        AttributeName: "expiry"
+        Enabled: True
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -110,7 +136,7 @@ Resources:
         WriteCapacityUnits: 5
       SSESpecification:
         SSEEnabled: True
-      TableName: !Ref TableName
+      TableName: !Ref ConnectionTableName
   OnConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -120,10 +146,13 @@ Resources:
       Runtime: nodejs8.10
       Environment:
         Variables:
-          TABLE_NAME: !Ref TableName
+          SESSION_TABLE_NAME: !Ref SessionTableName
+          CONNECTION_TABLE_NAME: !Ref ConnectionTableName
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref TableName
+          TableName: !Ref SessionTableName
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ConnectionTableName
   OnConnectPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -142,10 +171,13 @@ Resources:
       Runtime: nodejs8.10
       Environment:
         Variables:
-          TABLE_NAME: !Ref TableName
+          SESSION_TABLE_NAME: !Ref SessionTableName
+          CONNECTION_TABLE_NAME: !Ref ConnectionTableName
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref TableName
+          TableName: !Ref SessionTableName
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ConnectionTableName
   OnDisconnectPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -155,33 +187,36 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref OnDisconnectFunction
       Principal: apigateway.amazonaws.com
-  SendMessageFunction:
+  NewSessionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: sendmessage/
+      CodeUri: newSession/
       Handler: app.handler
       MemorySize: 128
       Runtime: nodejs8.10
       Environment:
         Variables:
-          TABLE_NAME: !Ref TableName
+          SESSION_TABLE_NAME: !Ref SessionTableName
+          CONNECTION_TABLE_NAME: !Ref ConnectionTableName
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref TableName
+          TableName: !Ref SessionTableName
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ConnectionTableName
       - Statement:
         - Effect: Allow
           Action:
           - 'execute-api:ManageConnections'
           Resource:
           - 'arn:aws:execute-api:*:*:*/@connections/*'
-  SendMessagePermission:
+  NewSessionPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
       - ShyftWebSocket
-      - SendMessageFunction
+      - NewSessionFunction
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref SendMessageFunction
+      FunctionName: !Ref NewSessionFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
@@ -197,9 +232,9 @@ Outputs:
     Description: "OnDisconnect function ARN"
     Value: !GetAtt OnDisconnectFunction.Arn
 
-  SendMessageFunctionArn:
-    Description: "SendMessage function ARN"
-    Value: !GetAtt SendMessageFunction.Arn
+  NewSessionFunctionArn:
+    Description: "NewSession function ARN"
+    Value: !GetAtt NewSessionFunction.Arn
 
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
