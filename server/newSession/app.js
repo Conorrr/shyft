@@ -35,9 +35,10 @@ exports.handler = async (event, context) => {
       expiry:      Math.floor(expiry.getTime() / 1000),
       maxFiles:    DEFAULT_MAX_NO_FILES,
       maxSize:     DEFAULT_MAX_FILE_SIZE,
-      connections: [
+      connections: DDB.createSet([
         connectionId
-      ]
+      ]),
+      files:       []
     }
   };
 
@@ -65,7 +66,7 @@ exports.handler = async (event, context) => {
   await createConnectionPromise;
 
   let newSessionBody = {
-      type: "newSession",
+      type: "newSessionCreated",
       sessionId: sessionId,
       hostKey: hostKey,
       expiry: expiry,
