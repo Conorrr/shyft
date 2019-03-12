@@ -66,21 +66,21 @@ Sent in response to reconnect or connect.
 
 file:
 
-| field    | type     | description                      |
-|----------|----------|----------------------------------|
-| fileId   | String   | Globally unique id for the file. |
-| filename | String   | Original name of the file.       |
-| size     | Number   | Size of the file in bytes.       |
+| field | type     | description                      |
+|-------|----------|----------------------------------|
+| id    | String   | Globally unique id for the file. |
+| name  | String   | Original name of the file.       |
+| size  | Number   | Size of the file in bytes.       |
 
 #### New File (newFile) (Host/Secondary) (Server)
 
 Sent for each new file uploaded to all clients. Even the client who uploaded the file.
 
-| field    | type     | description                      |
-|----------|----------|----------------------------------|
-| fileId   | String   | Globally unique id for the file. |
-| filename | String   | Original name of the file.       |
-| size     | Number   | Size of the file in bytes.       |
+| field    | type     | description                   |
+|----------|----------|-------------------------------|
+| id    | String   | Globally unique id for the file. |
+| name  | String   | Original name of the file.       |
+| size  | Number   | Size of the file in bytes.       |
 
 #### Extend Session (extendSession) (Host) (Client)
 
