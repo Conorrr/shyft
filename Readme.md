@@ -186,3 +186,17 @@ shyft.to -> redirects to shyftto.com
 `shyftto.com` - static html content
 `ws.shyftto.com` - all websockets
 `files.shyftto.com` - all file transfers
+
+## Deploying Server
+
+First Package server
+
+```
+sam package --output-template-file packaged.yaml --s3-bucket shyfttemplates
+```
+
+Next Deploy Changes
+
+```
+aws cloudformation deploy --template-file /home/conor/shyft/server/packaged.yaml --stack-name testshyft --capabilities CAPABILITY_IAM 
+```
