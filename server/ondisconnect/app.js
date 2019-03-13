@@ -13,6 +13,7 @@ exports.handler = async (event, context, callback) => {
     }
   };
 
+  // Does delete return the sessionId?
   let connectionDetailsResult = await DDB.get(connectionIdParams, function (err) {
     if (err) {
       console.log("error getting connection:" + JSON.stringify(err));
