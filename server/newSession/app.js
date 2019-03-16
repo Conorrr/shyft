@@ -53,6 +53,7 @@ exports.handler = async (event, context) => {
     Item: {
       connectionId: connectionId,
       sessionId:    sessionId,
+      isHost:       true,
     }
   };
 

@@ -21,6 +21,14 @@ Parameters:
     MaxLength: 50
     AllowedPattern: ^[A-Za-z_]+$
     ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+  FileBucketName:
+    Type: String
+    Default: 'shyftfiles'
+    Description: (Required) The name of the new S3 Bucket to store files in.
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters only. No numbers or special characters allowed.'
 
 Resources:
   ShyftWebSocket:
@@ -109,6 +117,26 @@ Resources:
       IntegrationUri: 
         Fn::Sub:
             arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReconnectFunction.Arn}/invocations
+  UploadInitRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      RouteKey: uploadInit
+      AuthorizationType: NONE
+      OperationName: UploadInitRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref UploadInitInteg
+  UploadInitInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      Description: UploadInit Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: 
+        Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UploadInitFunction.Arn}/invocations
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
@@ -116,6 +144,7 @@ Resources:
     - NewSessionRoute
     - ReconnectRoute
     - DisconnectRoute
+    - UploadInitRoute
     Properties:
       ApiId: !Ref ShyftWebSocket
   Stage:
@@ -158,6 +187,23 @@ Resources:
       SSESpecification:
         SSEEnabled: True
       TableName: !Ref ConnectionTableName
+  S3FileBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref FileBucketName
+      WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+      VersioningConfiguration:
+          Status: Enabled
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: SharedLayer
+      Description: Common code used across functions
+      ContentUri: shared/
+      CompatibleRuntimes:
+        - nodejs8.10
   OnConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -165,24 +211,6 @@ Resources:
       Handler: app.handler
       MemorySize: 128
       Runtime: nodejs8.10
-      Environment:
-        Variables:
-          SESSION_TABLE_NAME: !Ref SessionTableName
-          CONNECTION_TABLE_NAME: !Ref ConnectionTableName
-      Policies:
-      - DynamoDBCrudPolicy:
-          TableName: !Ref SessionTableName
-      - DynamoDBCrudPolicy:
-          TableName: !Ref ConnectionTableName
-  OnConnectPermission:
-    Type: AWS::Lambda::Permission
-    DependsOn:
-      - ShyftWebSocket
-      - OnConnectFunction
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref OnConnectFunction
-      Principal: apigateway.amazonaws.com
   OnDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -270,6 +298,42 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ReconnectFunction
       Principal: apigateway.amazonaws.com
+  UploadInitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: uploadInit/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs8.10
+      Layers:
+        - !Ref SharedLayer
+      Environment:
+        Variables:
+          SESSION_TABLE_NAME: !Ref SessionTableName
+          CONNECTION_TABLE_NAME: !Ref ConnectionTableName
+          FILE_BUCKET_NAME: !Ref FileBucketName
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref SessionTableName
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ConnectionTableName
+      - S3CrudPolicy:
+          BucketName: !Ref FileBucketName
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - 'arn:aws:execute-api:*:*:*/@connections/*'
+  UploadInitPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ShyftWebSocket
+      - UploadInitFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref UploadInitFunction
+      Principal: apigateway.amazonaws.com
 
 Outputs:
   ConnectionsTableArn:
@@ -291,6 +355,10 @@ Outputs:
   ReconnectFunctionArn:
     Description: "Reconnect function ARN"
     Value: !GetAtt ReconnectFunction.Arn
+
+  UploadInitFunctionArn:
+    Description: "Upload Init function ARN"
+    Value: !GetAtt UploadInitFunction.Arn
 
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
