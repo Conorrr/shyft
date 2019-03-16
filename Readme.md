@@ -72,19 +72,37 @@ file:
 | name  | String   | Original name of the file.       |
 | size  | Number   | Size of the file in bytes.       |
 
+#### Upload Init (newUpload) (Host/Seconadary) (Client)
+
+Start of new file process.
+
+| field     | type   | description                                       |
+|-----------|--------|---------------------------------------------------|
+| fileCount | Number | The number of files that are about to be uploaded |
+
+#### Presigned Url (presignedUrl) (Host/Secondary) (Server)
+
+Returns a list of presigned urls and the corresponding file id.
+
+| field | type     | description                            |
+|-------|----------|----------------------------------------|
+| id    | String   | Globally unique is for the file        |
+| url   | String   | url that the new file should be PUT at |
+
 #### New File (newFile) (Host/Secondary) (Server)
 
 Sent for each new file uploaded to all clients. Even the client who uploaded the file.
 
-| field    | type     | description                   |
-|----------|----------|-------------------------------|
-| id    | String   | Globally unique id for the file. |
-| name  | String   | Original name of the file.       |
-| size  | Number   | Size of the file in bytes.       |
+| field | type     | description                                |
+|-------|----------|--------------------------------------------|
+| id    | String   | Globally unique id for the file.           |
+| name  | String   | Original name of the file.                 |
+| url   | String   | Url that can be used to download the file. |
+| size  | Number   | Size of the file in bytes.                 |
 
 #### Extend Session (extendSession) (Host) (Client)
 
-Will extend session by expected.
+Will extend session by default amount of time.
 
 No other fields.
 
@@ -92,9 +110,17 @@ No other fields.
 
 Sent to all clients (including host).
 
-| field    | type     | description                      |
-|----------|----------|----------------------------------|
-| expiry      | DateTime | When the session expires.     |
+| field    | type              | description                           |
+|----------|-------------------|---------------------------------------|
+| expiry   | DateTime          | When the session expires.             |
+| fileUrls | Array of fileUrls | List of files and their updated Urls. |
+
+fileUrls
+
+| field | type     | description                              |
+|-------|----------|------------------------------------------|
+| id    | String   | Globally unique is for the file          |
+| url   | String   | url that the file can be downloaded from |
 
 #### Ping (ping) (Host/Secondary) (Client)
 
@@ -124,11 +150,7 @@ Sent when an error is encountered
 |-------------|--------|------------------------------------------------|
 | code        | String | describes the type of problem. E.G. No session |
 
-## HTTP Protocol
-
-To make upload and download progress bars simpler uploading and downloading is done using simple http.
-
-### Error response body
+##### Error response body
 
 Each possible error is listed below with possible codes.
 
@@ -136,27 +158,10 @@ Each possible error is listed below with possible codes.
 |-------------|------------------------------------------------|
 | TODO        |                                                |
 
-### Upload File
 
-POST /sessions/{sessionId}/files/
+## HTTP Protocol
 
-200 : on upload success
-
-Response body:
-```
-{
-    "fileId": "32 character hex string"
-}
-```
-404 : if session cannot be found (notFound)
-403 : Max number of files reach or file is too big (fileLimitReached) or (excessFileSize)
-
-### Download File
-
-GET /sessions/{sessionId}/files/{fileId}
-
-200 : the raw file
-404 : if session or file cannot be found
+To make upload and download progress bars simpler uploading and downloading is done using simple http by interacting directly with S3.
 
 ### Get Session
 
@@ -170,10 +175,13 @@ GET /sessions/{sessionId}/files/{fileId}
 
 ** Not Implemented in initial version**
 
-### Extend Session
+#### Upload Init 
 
 ** Not Implemented in initial version**
 
+### Extend Session
+
+** Not Implemented in initial version**
 
 ## String representation of binary ids
 
