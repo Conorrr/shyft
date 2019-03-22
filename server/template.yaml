@@ -211,6 +211,15 @@ Resources:
       Handler: app.handler
       MemorySize: 128
       Runtime: nodejs8.10
+  OnConnectPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ShyftWebSocket
+      - OnConnectFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref OnConnectFunction
+      Principal: apigateway.amazonaws.com
   OnDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:

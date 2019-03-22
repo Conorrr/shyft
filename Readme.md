@@ -72,7 +72,7 @@ file:
 | name  | String   | Original name of the file.       |
 | size  | Number   | Size of the file in bytes.       |
 
-#### Upload Init (newUpload) (Host/Seconadary) (Client)
+#### Upload Init (uploadInit) (Host/Seconadary) (Client)
 
 Start of new file process.
 
