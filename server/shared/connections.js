@@ -12,3 +12,14 @@ exports.getConnectionDetails = function(connectionId) {
 
   return DDB.get(connectionIdParams).promise();
 }
+
+exports.createConnection = function(connectionId, sessionId, isHost = false) {
+  return DDB.put({
+    TableName: CONNECTION_TABLE_NAME,
+    Item: {
+      connectionId: connectionId,
+      sessionId:    sessionId,
+      isHost:       isHost,
+    }
+  }).promise();
+}

@@ -39,7 +39,7 @@ Sent when host reconnects to a session.
 | sessionId   | String   | Identifies the session to reconnect to. |
 | hostKey     | String   | Used by host to identify themselves.    |
 
-#### Connect (connect) (Secondary) (Client)
+#### Connect (secondaryConnect) (Secondary) (Client)
 
 Sent when a new secondary connects.
 
