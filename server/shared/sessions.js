@@ -1,16 +1,14 @@
 const AWS = require('aws-sdk');
 const DDB = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
-const { SESSIONS_TABLE_NAME } = process.env;
+const { SESSION_TABLE_NAME } = process.env;
 
 exports.getSessionDetails = function(sessionId) {
-  let sessionIdParams = {
-    TableName: SESSIONS_TABLE_NAME,
+  return DDB.get({
+    TableName: SESSION_TABLE_NAME,
     Key: {
       sessionId: sessionId
     }
-  };
-
-  return DDB.get(connectionIdParams).promise();
+  }).promise();
 }
 
 exports.addConnection = function(sessionId, connectionId) {

@@ -20,9 +20,11 @@ function addMinutes(date, minutes) {
 }
 
 exports.handler = async (event, context) => {
+  let nowWithNoMillis = Math.floor(new Date().getTime()/1000) * 1000;
+
   let sessionId = randomId();
   let hostKey = randomId();
-  let created = new Date();
+  let created = new Date(nowWithNoMillis);
   let expiry = addMinutes(created, DEFAULT_SESSION_LENGTH_MINS); 
   let connectionId = event.requestContext.connectionId;
 

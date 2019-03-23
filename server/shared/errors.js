@@ -1,8 +1,6 @@
-// Unexpected error encounted
-const UNEXPECTED = 'unexpected'
-
 exports.codes = {
-  UNEXPECTED: UNEXPECTED
+  UNEXPECTED: 'unexpected',
+  ENDED: 'ended'
 }
 
 exports.errorMessageBody = function(code) {

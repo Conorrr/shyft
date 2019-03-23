@@ -343,8 +343,6 @@ Resources:
       Runtime: nodejs8.10
       Layers:
         - !Ref SharedLayer
-      Layers:
-        - !Ref SharedLayer
       Environment:
         Variables:
           SESSION_TABLE_NAME: !Ref SessionTableName

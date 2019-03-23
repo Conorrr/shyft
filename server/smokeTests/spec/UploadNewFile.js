@@ -1,7 +1,7 @@
 const WebSocketHelper = require('./utils/WebSocketHelper')
 
 describe("all basic functionality", function() {
-  const url = "wss://8h42cerr95.execute-api.eu-central-1.amazonaws.com/Prod/";
+  const url = "wss://6o5dmy0vb8.execute-api.eu-central-1.amazonaws.com/Prod/";
   
   let hostConnection = new WebSocketHelper();
   let secondaryConnection1 = new WebSocketHelper();
@@ -13,6 +13,7 @@ describe("all basic functionality", function() {
 
   let sessionId;
   let hostKey;
+  let expiry;
 
   beforeAll(async function() {
     // Open Socket
@@ -29,6 +30,7 @@ describe("all basic functionality", function() {
       message = await hostConnection.waitForNextMessage();
       sessionId = message.sessionId;
       hostKey = message.hostKey;
+      expiry = message.expiry;
     });
 
     it("response type is newSessionCreated", () => {
@@ -72,11 +74,35 @@ describe("all basic functionality", function() {
       await Promise.all(promises);
     })
 
+    afterAll(() => {
+      for (let connection of secondaryConnections) {
+        connection.close();
+      }
+    })
+
     for (let secondaryConnection of secondaryConnections) {
-      it("secondary are able to connect to openSession", async () => {
-        hostConnection.sendMessage({type:"secondaryConnect", sessionId:sessionId});
+      let message;
+
+      it("secondary are able to connect to open session", async () => {
+        secondaryConnection.sendMessage({type:"secondaryConnect", sessionId:sessionId});
 
         message = await secondaryConnection.waitForNextMessage();
+      });
+
+      it("response type is sessionData", () => {
+        expect(message.type).toEqual("sessionData");
+      });
+
+      it("maxFiles to be 10", () => {
+        expect(message.maxFiles).toEqual(10);
+      });
+
+      it("maxSize to be 4194304", () => {
+        expect(message.maxSize).toEqual(4194304);
+      });
+
+      it("expiry to be match host expiry", () => {
+        expect(message.expiry).toEqual(expiry);
       });
     }
   });

@@ -36,7 +36,7 @@ class WebSocketHelper {
         this.connection.sendUTF(JSON.stringify(message));
     }
 
-    waitForNextMessage(timeout = 1000) {
+    waitForNextMessage(timeout = 3000) {
         let _this = this;
         return new Promise(function(accept, reject) {
             if (_this.messages.length > 0) {
@@ -57,7 +57,7 @@ class WebSocketHelper {
     }
 
     close() {
-        this.client.close();
+        this.connection.close();
     }
 
 }

@@ -47,12 +47,6 @@ Sent when a new secondary connects.
 |-------------|----------|---------------------------------|
 | sessionId   | String   | Identifies the session to join. |
 
-#### Session has ended (ended) (Host/Secondary) (Server)
-
-Sent in response to connect or reconnect if the session has already ended.
-
-No other fields.
-
 #### Session data (sessionData) (Host/Secondary) (Server)
 
 Sent in response to reconnect or connect.
@@ -154,9 +148,10 @@ Sent when an error is encountered
 
 Each possible error is listed below with possible codes.
 
-| code        | description                                    |
-|-------------|------------------------------------------------|
-| TODO        |                                                |
+| code        | description                                                                                                                    |
+|-------------|--------------------------------------------------------------------------------------------------------------------------------|
+| unknown     | Sent when an unexpected error has occurred.                                                                                    |
+| ended       | Sent when attempting to interact with a session that has already expired. May also be sent if an invalid sessionId is supplied |
 
 
 ## HTTP Protocol
