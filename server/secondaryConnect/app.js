@@ -11,8 +11,6 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   // get session
   const session = (await sessions.getSessionDetails(sessionId)).Item;
 
-  console.log(session.expiry);
-
   if (!session) {
     await wsSend(errors.errorMessageBody(errors.codes.ENDED));
     return;

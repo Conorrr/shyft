@@ -8,6 +8,7 @@ exports.wrapWebSocketMethod = function(fn) {
 
     try {
       await fn(event, context, preppedWs);
+      
       return { statusCode: 200, body: 'Success' };
     } catch (error) {
       console.error(error);

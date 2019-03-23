@@ -1,5 +1,8 @@
 const AWS = require('aws-sdk');
 const crypto = require("crypto");
+const connections = require('/opt/connections');
+const sessions = require('/opt/sessions');
+const { wrapWebSocketMethod } = require('/opt/lambda');
 // Add ApiGatewayManagementApi to the AWS namespace
 require('aws-sdk/clients/apigatewaymanagementapi');
 
@@ -19,7 +22,7 @@ function addMinutes(date, minutes) {
   return new Date(date.getTime() + minutes*60000);
 }
 
-exports.handler = async (event, context) => {
+exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   let nowWithNoMillis = Math.floor(new Date().getTime()/1000) * 1000;
 
   let sessionId = randomId();
@@ -28,70 +31,19 @@ exports.handler = async (event, context) => {
   let expiry = addMinutes(created, DEFAULT_SESSION_LENGTH_MINS); 
   let connectionId = event.requestContext.connectionId;
 
-  var createSessionParams = {
-    TableName: SESSION_TABLE_NAME,
-    Item: {
-      sessionId:   sessionId,
-      hostKey:     hostKey,
-      created:     Math.floor(created.getTime() / 1000),
-      expiry:      Math.floor(expiry.getTime() / 1000),
-      maxFiles:    DEFAULT_MAX_NO_FILES,
-      maxSize:     DEFAULT_MAX_FILE_SIZE,
-      connections: DDB.createSet([
-        connectionId
-      ]),
-      files:       []
-    }
-  };
+  let createSessionPromise = sessions.createSession(sessionId, hostKey, created, expiry, DEFAULT_MAX_NO_FILES, DEFAULT_MAX_FILE_SIZE, connectionId);
 
-  let createSessionPromise = DDB.put(createSessionParams, function (err) {
-    if (err) {
-      console.error("Error creating session" + JSON.stringify(err));
-    }
-  }).promise();
-
-  var createConnectionParams = {
-    TableName: CONNECTION_TABLE_NAME,
-    Item: {
-      connectionId: connectionId,
-      sessionId:    sessionId,
-      isHost:       true,
-    }
-  };
-
-  let createConnectionPromise = DDB.put(createConnectionParams, function (err) {
-    if (err) {
-      console.error("Error creating session" + JSON.stringify(err));
-    }
-  }).promise();
+  let createConnectionPromise = connections.createConnection(connectionId, sessionId, true);
   
-  await createSessionPromise;
-  await createConnectionPromise;
+  let responsePromise = wsSend({
+    type: "newSessionCreated",
+    sessionId: sessionId,
+    hostKey: hostKey,
+    expiry: expiry,
+    maxFiles: DEFAULT_MAX_NO_FILES,
+    maxSize: DEFAULT_MAX_FILE_SIZE
+  });
 
-  let newSessionBody = {
-      type: "newSessionCreated",
-      sessionId: sessionId,
-      hostKey: hostKey,
-      expiry: expiry,
-      maxFiles: DEFAULT_MAX_NO_FILES,
-      maxSize: DEFAULT_MAX_FILE_SIZE
-    };
+  await Promise.all([ createSessionPromise, createConnectionPromise, responsePromise]);
 
-    const apigwManagementApi = new AWS.ApiGatewayManagementApi({
-      apiVersion: '2018-11-29',
-      endpoint: event.requestContext.domainName + '/' + event.requestContext.stage
-    });
-
-    try {
-      await apigwManagementApi.postToConnection({ ConnectionId: connectionId, Data: JSON.stringify(newSessionBody) }).promise();
-    } catch (e) {
-      if (e.statusCode === 410) {
-        console.log(`Found stale connection, deleting ${connectionId}`);
-        // await ddb.delete({ TableName: TABLE_NAME, Key: { connectionId } }).promise();
-      } else {
-        throw e;
-      }
-    }
-
-  return { statusCode: 200, body: 'Data sent.' };
-};
+});
