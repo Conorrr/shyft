@@ -70,18 +70,22 @@ file:
 
 Start of new file process.
 
-| field     | type   | description                                       |
-|-----------|--------|---------------------------------------------------|
-| fileCount | Number | The number of files that are about to be uploaded |
+| field     | type           | description                                                       |
+|-----------|----------------|-------------------------------------------------------------------|
+| filenames | List of String | A list of filenames for which presigned urls need to be generated |
 
 #### Presigned Url (presignedUrl) (Host/Secondary) (Server)
 
-Returns a list of presigned urls and the corresponding file id.
+Contains map (presignedUrls) of filenames to objects containing presigned urls and the corresponding file id.
 
-| field | type     | description                            |
-|-------|----------|----------------------------------------|
-| id    | String   | Globally unique is for the file        |
-| url   | String   | url that the new file should be PUT at |
+| field         | type | description                                               |
+|---------------|------|-----------------------------------------------------------|
+| presignedUrls | Map  | Map of filenames to urls that can be used to upload files |
+
+| field    | type     | description                            |
+|----------|----------|----------------------------------------|
+| id       | String   | Globally unique is for the file        |
+| url      | String   | url that the new file should be PUT at |
 
 #### New File (newFile) (Host/Secondary) (Server)
 
@@ -148,10 +152,13 @@ Sent when an error is encountered
 
 Each possible error is listed below with possible codes.
 
-| code        | description                                                                                                                    |
-|-------------|--------------------------------------------------------------------------------------------------------------------------------|
-| unknown     | Sent when an unexpected error has occurred.                                                                                    |
-| ended       | Sent when attempting to interact with a session that has already expired. May also be sent if an invalid sessionId is supplied |
+| code            | description                                                                                                                     |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------------|
+| ended           | Sent when attempting to interact with a session that has already expired. May also be sent if an invalid sessionId is supplied. |
+| invalid-request | Something about the request was invalid. E.G. A required field was missing.                                                     |
+| unknown         | Sent when an unexpected error has occurred.                                                                                     |
+| too-many-files  | Reached max number of files                                                                                                     |
+| not-connected   | Current websocket is not associated with any session.                                                                           |
 
 
 ## HTTP Protocol

@@ -22,6 +22,17 @@ exports.addConnection = (sessionId, connectionId) => {
   }).promise();
 }
 
+exports.addFiles = (sessionId, files) => {
+  return DDB.update({
+    TableName: SESSION_TABLE_NAME,
+    Key: { sessionId : sessionId },
+    UpdateExpression: 'SET files = list_append(files, :c)',
+    ExpressionAttributeValues: {
+      ':c' : files
+    }
+  }).promise();
+}
+
 exports.createSession = (sessionId, hostKey, created, expiry, maxFiles, maxSize, connectionId) => {
   return DDB.put({
     TableName: SESSION_TABLE_NAME,
