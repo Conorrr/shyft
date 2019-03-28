@@ -4,8 +4,8 @@ const readFile = promisify(fs.readFile);
 const request = promisify(require('request'));
 const WebSocketHelper = require('./utils/WebSocketHelper');
 
-describe("all basic functionality", function() {
-  const url = "wss://blnqhgfs9e.execute-api.eu-central-1.amazonaws.com/Prod/";
+describe("basic uploading and sharing functionality", function() {
+  const url = "wss://qom5xcmty9.execute-api.eu-central-1.amazonaws.com/Prod/";
   
   let hostConnection = new WebSocketHelper();
   let secondaryConnection1 = new WebSocketHelper();

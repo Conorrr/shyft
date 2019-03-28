@@ -8,6 +8,7 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   const secondaryConnectEvent = JSON.parse(event.body);
   const connectionId = event.requestContext.connectionId;
   const sessionId = secondaryConnectEvent.sessionId;
+  const isHost = secondaryConnectEvent.type == 'reconnect';
 
   // get session
   const session = (await sessions.getSessionDetails(sessionId)).Item;
@@ -17,8 +18,13 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
     return;
   }
 
+  if (isHost && session.hostKey !== secondaryConnectEvent.hostKey) {
+    await wsSend(errors.errorMessageBody(errors.codes.BAD_AUTH));
+    return;
+  }
+
   // add connection to sessions
-  let addSessionPromise = connections.createConnection(connectionId, sessionId);
+  let addSessionPromise = connections.createConnection(connectionId, sessionId, isHost);
 
   // add session to connections
   let addConnectionPromise = sessions.addConnection(sessionId, connectionId);

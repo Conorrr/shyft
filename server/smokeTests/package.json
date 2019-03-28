@@ -4,8 +4,8 @@
   "description": "Tests that run against a live set of websocket functions in aws",
   "main": "uploadNewFile.js",
   "scripts": {
-    "test": "jasmine test",
-    "debug": "node --inspect-brk node_modules/jasmine/bin/jasmine.js spec/UploadNewFile.js",
+    "test": "jasmine test spec/*.js",
+    "debug": "node --inspect-brk node_modules/jasmine/bin/jasmine.js",
     "jasmine": "jasmine"
   },
   "devDependencies": {
