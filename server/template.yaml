@@ -117,6 +117,66 @@ Resources:
       IntegrationUri: 
         Fn::Sub:
             arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PingFunction.Arn}/invocations
+  ExtendRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      RouteKey: extend
+      AuthorizationType: NONE
+      OperationName: ExtendRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref ExtendInteg
+  ExtendInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      Description: Extend Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: 
+        Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ExtendFunction.Arn}/invocations
+  EndRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      RouteKey: end
+      AuthorizationType: NONE
+      OperationName: EndRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref EndInteg
+  EndInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      Description: End Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: 
+        Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EndFunction.Arn}/invocations
+  DeleteFileRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      RouteKey: deleteFile
+      AuthorizationType: NONE
+      OperationName: DeleteFileRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref DeleteFileInteg
+  DeleteFileInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      Description: Delete File Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: 
+        Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteFileFunction.Arn}/invocations
   ReconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -183,6 +243,9 @@ Resources:
     - ConnectRoute
     - NewSessionRoute
     - PingRoute
+    - ExtendRoute
+    - EndRoute
+    - DeleteFileRoute
     - ReconnectRoute
     - SecondaryConnectRoute
     - DisconnectRoute
@@ -346,6 +409,93 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PingFunction
       Principal: apigateway.amazonaws.com
+  ExtendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: extend/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs8.10
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - 'arn:aws:execute-api:*:*:*/@connections/*'
+      - DynamoDBCrudPolicy:
+          TableName: !Ref SessionTableName
+      - S3CrudPolicy:
+          BucketName: !Ref FileBucketName
+  ExtendPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ShyftWebSocket
+      - ExtendFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExtendFunction
+      Principal: apigateway.amazonaws.com
+  EndFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: end/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs8.10
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - 'arn:aws:execute-api:*:*:*/@connections/*'
+      - DynamoDBCrudPolicy:
+          TableName: !Ref SessionTableName
+      - S3CrudPolicy:
+          BucketName: !Ref FileBucketName
+  EndPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ShyftWebSocket
+      - EndFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref EndFunction
+      Principal: apigateway.amazonaws.com
+  DeleteFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: deleteFile/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs8.10
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - 'arn:aws:execute-api:*:*:*/@connections/*'
+      - DynamoDBCrudPolicy:
+          TableName: !Ref SessionTableName
+      - S3CrudPolicy:
+          BucketName: !Ref FileBucketName
+  DeleteFilePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ShyftWebSocket
+      - DeleteFileFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeleteFileFunction
+      Principal: apigateway.amazonaws.com
   SecondaryConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -474,6 +624,18 @@ Outputs:
   PingFunctionArn:
     Description: "Ping function ARN"
     Value: !GetAtt PingFunction.Arn
+
+  ExtendFunctionArn:
+    Description: "Extend function ARN"
+    Value: !GetAtt ExtendFunction.Arn
+
+  EndFunctionArn:
+    Description: "End function ARN"
+    Value: !GetAtt EndFunction.Arn
+
+  DeleteFileFunctionArn:
+    Description: "Delete file function ARN"
+    Value: !GetAtt DeleteFileFunction.Arn
 
   SecondaryConnectFunctionArn:
     Description: "Secondary Connect function ARN"

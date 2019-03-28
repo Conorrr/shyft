@@ -1,7 +1,7 @@
 const WebSocketHelper = require('./utils/WebSocketHelper');
 
 describe("given nothing", function() {
-  const url = "wss://c8gu73uvqg.execute-api.eu-central-1.amazonaws.com/Prod/";
+  const url = "wss://8yz0qkkqra.execute-api.eu-central-1.amazonaws.com/Prod/";
   let connection = new WebSocketHelper();
 
   afterAll(() => {

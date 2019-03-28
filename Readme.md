@@ -105,7 +105,7 @@ Sent for each new file uploaded to all clients. Even the client who uploaded the
 | url   | String   | Url that can be used to download the file. |
 | size  | Number   | Size of the file in bytes.                 |
 
-#### Extend Session (extendSession) (Host) (Client)
+#### Extend Session (extend) (Host) (Client)
 
 Will extend session by default amount of time. SessionData message is sent to update all information.
 
@@ -131,7 +131,7 @@ Not needed for initial implementation
 
 Not needed for initial implementation
 
-#### End Session (endSession) (Host) (Client)
+#### End Session (end) (Host) (Client)
 
 Deletes all files and disconnects all clients. No message.
 

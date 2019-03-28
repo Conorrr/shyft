@@ -5,7 +5,7 @@ const request = promisify(require('request'));
 const WebSocketHelper = require('./utils/WebSocketHelper');
 
 describe("host is able to reconnect to an existing session", function() {
-  const url = "wss://c8gu73uvqg.execute-api.eu-central-1.amazonaws.com/Prod/";
+  const url = "wss://8yz0qkkqra.execute-api.eu-central-1.amazonaws.com/Prod/";
   
   let hostConnection = new WebSocketHelper();
 
