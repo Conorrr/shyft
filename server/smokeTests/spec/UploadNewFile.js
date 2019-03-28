@@ -5,7 +5,7 @@ const request = promisify(require('request'));
 const WebSocketHelper = require('./utils/WebSocketHelper');
 
 describe("basic uploading and sharing functionality", function() {
-  const url = "wss://qom5xcmty9.execute-api.eu-central-1.amazonaws.com/Prod/";
+  const url = "wss://c8gu73uvqg.execute-api.eu-central-1.amazonaws.com/Prod/";
   
   let hostConnection = new WebSocketHelper();
   let secondaryConnection1 = new WebSocketHelper();

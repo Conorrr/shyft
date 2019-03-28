@@ -107,25 +107,9 @@ Sent for each new file uploaded to all clients. Even the client who uploaded the
 
 #### Extend Session (extendSession) (Host) (Client)
 
-Will extend session by default amount of time.
+Will extend session by default amount of time. SessionData message is sent to update all information.
 
 No other fields.
-
-#### Session Extended (sessionExtended) (Host/Secondary) (Server)
-
-Sent to all clients (including host).
-
-| field    | type              | description                           |
-|----------|-------------------|---------------------------------------|
-| expiry   | DateTime          | When the session expires.             |
-| fileUrls | Array of fileUrls | List of files and their updated Urls. |
-
-fileUrls
-
-| field | type     | description                              |
-|-------|----------|------------------------------------------|
-| id    | String   | Globally unique is for the file          |
-| url   | String   | url that the file can be downloaded from |
 
 #### Ping (ping) (Host/Secondary) (Client)
 
@@ -144,6 +128,18 @@ No other fields.
 Not needed for initial implementation
 
 #### File Deleted (fileDeleted) (Host/Secondary) (Server)
+
+Not needed for initial implementation
+
+#### End Session (endSession) (Host) (Client)
+
+Deletes all files and disconnects all clients. No message.
+
+Not needed for initial implementation
+
+#### Session Ended (sessionEnded) (Host/Secondary) (Server)
+
+No message.
 
 Not needed for initial implementation
 

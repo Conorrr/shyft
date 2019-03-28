@@ -97,6 +97,26 @@ Resources:
       IntegrationUri: 
         Fn::Sub:
             arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NewSessionFunction.Arn}/invocations
+  PingRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      RouteKey: ping
+      AuthorizationType: NONE
+      OperationName: PingRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref PingInteg
+  PingInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ShyftWebSocket
+      Description: Ping Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: 
+        Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PingFunction.Arn}/invocations
   ReconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -162,6 +182,7 @@ Resources:
     DependsOn:
     - ConnectRoute
     - NewSessionRoute
+    - PingRoute
     - ReconnectRoute
     - SecondaryConnectRoute
     - DisconnectRoute
@@ -300,6 +321,31 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref NewSessionFunction
       Principal: apigateway.amazonaws.com
+  PingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ping/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs8.10
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - 'arn:aws:execute-api:*:*:*/@connections/*'
+  PingPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ShyftWebSocket
+      - PingFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PingFunction
+      Principal: apigateway.amazonaws.com
   SecondaryConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -424,6 +470,10 @@ Outputs:
   NewSessionFunctionArn:
     Description: "NewSession function ARN"
     Value: !GetAtt NewSessionFunction.Arn
+
+  PingFunctionArn:
+    Description: "Ping function ARN"
+    Value: !GetAtt PingFunction.Arn
 
   SecondaryConnectFunctionArn:
     Description: "Secondary Connect function ARN"
