@@ -70,9 +70,16 @@ file:
 
 Start of new file process.
 
-| field     | type           | description                                                       |
-|-----------|----------------|-------------------------------------------------------------------|
-| filenames | List of String | A list of filenames for which presigned urls need to be generated |
+Request contains a list of objects containing filename and filetype for each file.
+
+| field  | type  | description                                                       |
+|--------|-------|-------------------------------------------------------------------|
+| file   | Map   | A list of filenames for which presigned urls need to be generated |
+
+| field     | type    | description                                                       |
+|-----------|---------|-------------------------------------------------------------------|
+| filename  | String  | Original name of the file.                                        |
+| type      | String  | Original content type of the file.                                |
 
 #### Presigned Url (presignedUrl) (Host/Secondary) (Server)
 

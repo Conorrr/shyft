@@ -41,6 +41,7 @@ class WebSocketHelper {
         return new Promise(function(accept, reject) {
             if (_this.messages.length > 0) {
                 accept(_this.messages.pop());
+                return;
             }
             _this.messageCallback = function() {
                 _this.messageCallback = () => {};

@@ -13,9 +13,9 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   const uploadInitEvent = JSON.parse(event.body);
   let connectionId = event.requestContext.connectionId;
   
-  let filenames = uploadInitEvent.filenames;
+  let files = uploadInitEvent.files;
 
-  if (filenames === undefined || !Array.isArray(filenames) || filenames.length < 1) {
+  if (files === undefined || !Array.isArray(files) || files.length < 1) {
     await wsSend(errors.errorMessageBody(errors.codes.INVALID_REQUEST));
     return;
   }
@@ -43,8 +43,8 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
     return;
   }
 
-  if (session.files.length + filenames.length > session.maxFiles) {
-    console.log(`Uploading that number of files will put session over maxFiles limit ${session.files.length} + ${filenames.length} > ${session.maxFiles}`);
+  if (session.files.length + files.length > session.maxFiles) {
+    console.log(`Uploading that number of files will put session over maxFiles limit ${session.files.length} + ${files.length} > ${session.maxFiles}`);
     await wsSend(errors.errorMessageBody(errors.codes.TOO_MANY_FILES));
     return;
   }
@@ -54,18 +54,19 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
 
   let expires = session.expiry - Math.floor(new Date().getTime() /1000);
 
-  for (filename of filenames) {
+  for (file of files) {
     let fileId = randomId();
-    let url = s3.generatePutUrl(sessionId, fileId, expires);
+    let url = s3.generatePutUrl(sessionId, fileId, file.type, expires);
 
-    presignedUrlBody[filename] = {
+    presignedUrlBody[file.filename] = {
       id  : fileId,
       url : url
     };
 
     sessionsFiles.push({
       id       : fileId,
-      filename : filename,
+      filename : file.filename,
+      type     : file.type,
       status   : 'PENDING'
     });
   }

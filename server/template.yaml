@@ -212,15 +212,14 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref FileBucketName
-      WebsiteConfiguration:
-          IndexDocument: index.html
-          ErrorDocument: index.html
-      VersioningConfiguration:
-          Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 1
+            Status: Enabled
   SharedLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: SharedLayer
+      LayerName: SharedLayer 
       Description: Common code used across functions
       ContentUri: shared/
       CompatibleRuntimes:
@@ -403,6 +402,41 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref UploadInitFunction
       Principal: apigateway.amazonaws.com
+  FileUploadedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: fileUploaded/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs8.10
+      Layers:
+        - !Ref SharedLayer
+      Environment:
+        Variables:
+          SESSION_TABLE_NAME: !Ref SessionTableName
+          CONNECTION_TABLE_NAME: !Ref ConnectionTableName
+          FILE_BUCKET_NAME: !Ref FileBucketName
+          DOMAIN_NAME: !Join [ '', [ !Ref ShyftWebSocket, '.execute-api.',!Ref 'AWS::Region','.amazonaws.com'] ]
+          STAGE_NAME: !Ref Stage
+      Events:
+        FileUploadedEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref S3FileBucket
+            Events: s3:ObjectCreated:Put
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref SessionTableName
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ConnectionTableName
+      - S3CrudPolicy:
+          BucketName: !Ref FileBucketName
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - 'arn:aws:execute-api:*:*:*/@connections/*'
 
 Outputs:
   ConnectionsTableArn:
@@ -432,6 +466,10 @@ Outputs:
   UploadInitFunctionArn:
     Description: "Upload Init function ARN"
     Value: !GetAtt UploadInitFunction.Arn
+
+  UploadInitFunctionArn:
+    Description: "File Uploaded function ARN"
+    Value: !GetAtt FileUploadedFunction.Arn
 
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"

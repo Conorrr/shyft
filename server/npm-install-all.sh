@@ -3,7 +3,7 @@ set -o xtrace
 
 root="$(pwd)"
 
-for directory in connect newSession onconnect ondisconnect reconnect shared uploadInit
+for directory in fileUploaded newSession onconnect ondisconnect reconnect secondaryConnect shared uploadInitnp
 do
     cd "$root/$directory"
     npm install

@@ -50,3 +50,14 @@ exports.createSession = (sessionId, hostKey, created, expiry, maxFiles, maxSize,
     }
   }).promise();
 }
+
+exports.updateFile = (sessionId, fileIndex, id, filename, type, status, size) => {
+  return DDB.update({
+    TableName: SESSION_TABLE_NAME,
+    Key: { sessionId : sessionId },
+    UpdateExpression: `SET files[${fileIndex}] = :c`,
+    ExpressionAttributeValues: {
+      ':c' : {filename: filename, id: id, status: status, size: size, type: type}
+    }
+  }).promise();
+}
