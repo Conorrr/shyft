@@ -346,11 +346,14 @@ Resources:
         Variables:
           SESSION_TABLE_NAME: !Ref SessionTableName
           CONNECTION_TABLE_NAME: !Ref ConnectionTableName
+          FILE_BUCKET_NAME: !Ref FileBucketName
       Policies:
       - DynamoDBCrudPolicy:
           TableName: !Ref SessionTableName
       - DynamoDBCrudPolicy:
           TableName: !Ref ConnectionTableName
+      - S3CrudPolicy:
+          BucketName: !Ref FileBucketName
       - Statement:
         - Effect: Allow
           Action:
@@ -467,7 +470,7 @@ Outputs:
     Description: "Upload Init function ARN"
     Value: !GetAtt UploadInitFunction.Arn
 
-  UploadInitFunctionArn:
+  FileUploadedFunctionArn:
     Description: "File Uploaded function ARN"
     Value: !GetAtt FileUploadedFunction.Arn
 

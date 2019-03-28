@@ -350,6 +350,86 @@ describe("all basic functionality", function() {
     }
   });
 
-});
+  describe("6th secondary connections should be able to connect and see all files", () => {
+      let message;
 
-// 6th secondary joins and sessionData contains all files so far
+      let secondaryConnection6 = new WebSocketHelper();
+
+      it("secondary are able to connect to open session", async () => {
+        
+        await secondaryConnection6.connect(url);
+        secondaryConnection6.sendMessage({type:"secondaryConnect", sessionId:sessionId});
+
+        message = await secondaryConnection6.waitForNextMessage();
+      });
+
+      it("response type is sessionData", () => {
+        expect(message.type).toEqual("sessionData");
+      });
+
+      it("maxFiles to be 10", () => {
+        expect(message.maxFiles).toEqual(10);
+      });
+
+      it("maxSize to be 4194304", () => {
+        expect(message.maxSize).toEqual(4194304);
+      });
+
+      it("expiry to be match host expiry", () => {
+        expect(message.expiry).toEqual(expiry);
+      });
+
+      it("contains all of the already uploaded files", () => {
+        expect(message.files.length).toEqual(4);
+      });
+      
+      it("id is same as was returned by presignedUrl", () => {
+        expect(message.files[0].id).toEqual(file1Id);
+        expect(message.files[1].id).toEqual(file2Id);
+        expect(message.files[2].id).toEqual(file3Id);
+        expect(message.files[3].id).toEqual(file4Id);
+      });
+
+      it("the name matches the original of the file", () => {
+        expect(message.files[0].name).toEqual('one.jpg');
+        expect(message.files[1].name).toEqual('two.jpg');
+        expect(message.files[2].name).toEqual('three.jpg');
+        expect(message.files[3].name).toEqual('four.jpg');
+      });
+      
+      let fileResponse1;
+      let fileResponse2;
+      let fileResponse3;
+      let fileResponse4;
+
+      it("url can be used to download the file", async () => {
+        fileResponse1 = await request({url: message.files[0].url});
+        expect(fileResponse1.statusCode).toEqual(200);
+
+        fileResponse2 = await request({url: message.files[1].url});
+        expect(fileResponse2.statusCode).toEqual(200);
+
+        fileResponse3 = await request({url: message.files[2].url});
+        expect(fileResponse3.statusCode).toEqual(200);
+
+        fileResponse4 = await request({url: message.files[3].url});
+        expect(fileResponse4.statusCode).toEqual(200);
+      });
+
+      it("the responses have Content-Disposition header", () => {
+        expect(fileResponse1.headers['content-disposition']).toEqual("attachment; filename=\"one.jpg\"");
+        expect(fileResponse2.headers['content-disposition']).toEqual("attachment; filename=\"two.jpg\"");
+        expect(fileResponse3.headers['content-disposition']).toEqual("attachment; filename=\"three.jpg\"");
+        expect(fileResponse4.headers['content-disposition']).toEqual("attachment; filename=\"four.jpg\"");
+      });
+
+      it("the responses have Content-Type header", () => {
+        expect(fileResponse1.headers['content-type']).toEqual("image/jpeg");
+        expect(fileResponse2.headers['content-type']).toEqual("image/jpeg");
+        expect(fileResponse3.headers['content-type']).toEqual("image/jpeg");
+        expect(fileResponse4.headers['content-type']).toEqual("image/jpeg");
+      });
+  });
+
+
+});

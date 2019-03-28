@@ -17,6 +17,7 @@ exports.generatePutUrl = (sessionId, fileId, contentType, expires) => {
 }
 
 exports.generateGetUrl = (sessionId, fileId, expires) => {
+    console.log(`Generating Get URL ${sessionId}/${fileId} expires in ${expires} seconds`)
     return s3.getSignedUrl('getObject', {
         Bucket  : FILE_BUCKET_NAME,
         Key     : path(sessionId, fileId),
