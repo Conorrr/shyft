@@ -1,4 +1,5 @@
-var WebSocketHandler = require('./WebSocketHandler');
+const QRCode = require('qrcode');
+const WebSocketHandler = require('./WebSocketHandler');
 
 let webSocketUrl = "wss://8yz0qkkqra.execute-api.eu-central-1.amazonaws.com/Prod";
 let host = "http://localhost:8080/";
@@ -21,7 +22,7 @@ let files = [];
  *    origin: boolean
  *    putUrl: string
  *    fileRef: File
- *    status: READY/TOO_LARGE/WAITING/QUEUED/UPLOADING/UPLOADED/
+ *    status: READY/TOO_LARGE/WAITING/QUEUED/UPLOADING/UPLOADED/ERRORED
  * }
  */
 let expiryTimer;
@@ -46,7 +47,7 @@ webSocketHandler.addHandler("newSessionCreated", (data) => {
   expiry = new Date(data.expiry);
 
   saveToLocalStorage();
-  // generate QR Code
+  generateQR();
 
   startExpiryTimer();
   renderFileMessage();
@@ -62,7 +63,7 @@ webSocketHandler.addHandler("sessionData", (data) => {
   renderFileMessage();
 
   saveToLocalStorage();
-  // generate QR Code
+  generateQR();
 
   startExpiryTimer();
 });
@@ -78,7 +79,6 @@ webSocketHandler.addHandler("newFile", (data) => {
     }, 'READY');
     renderFileMessage();
   }
-  // generate QR Code
 });
 
 webSocketHandler.addHandler("error", (data) => {
@@ -101,13 +101,15 @@ webSocketHandler.addHandler('presignedUrl', (data) => {
     // start upload
     var req = new XMLHttpRequest();
     req.open("PUT", file.putUrl, true);
-    req.onload = function (oEvent) {
+    req.upload.onload = function (oEvent) {
       updateFileDom(file.id, file.name, file.type, file.size, 'UPLOADED', null);
     };
-    req.onprogress = (evt) => {
+    req.upload.onprogress = (evt) => {
       let progress = Math.floor((evt.loaded / file.size) * 100);
-      console.log(progress);
       document.getElementById(`file${file.id}`).getElementsByClassName('progress')[0].innerText = `Uploading ${progress}%`;
+    };
+    req.onerror = (evt) => {
+      updateFileDom(file.id, file.name, file.type, file.size, 'ERRORED', null);
     };
     req.setRequestHeader('Content-Type', file.type);
     req.setRequestHeader('Content-Disposition', `attachment; filename="${file.name}"`);
@@ -129,6 +131,15 @@ webSocketHandler.addCloseHandler(() => {
   reconnect();
   state = 'RECONNECTING';
 });
+
+function generateQR() {
+  let url = `${host}#${sessionId}`;
+  QRCode.toCanvas(document.getElementById('qrCode'), url, { toSJISFunc: QRCode.toSJIS, width: 400, margin: 0 }, function (error) {
+    if (error) {
+      console.error(error)
+    }
+  });
+}
 
 function getFileById(id) {
   return files.find(file => {
