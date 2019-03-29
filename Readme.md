@@ -2,6 +2,24 @@
 
 A tool to make moving files simpler
 
+## TODO
+
+Features and things that need doing:
+
+* Deploy site somewhere
+* Drag and drop files
+* Parametrise F.E.  E.G. URL
+* Limit Max number of files in the UI.
+* Build and deploy pipeline
+* Animation for new files
+* UI design
+* Add help text
+* Add FAQ
+* Extend Sessions
+* End Sessions
+* Hide QR Code
+* Debug why files get deleted from s3 - Seems that FileUploaded is called at other times.
+
 ## WebSocket Protocol (v0)
 
 MessageName (Type) (Permission: Host/Secondary) (Source: Server/Client)
