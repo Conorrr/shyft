@@ -1,9 +1,85 @@
 <!doctype html>
 <html>
+
 <head>
+  <meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
   <title>shyft to - Simple file transfers</title>
 </head>
+
 <body>
-    <h1>italic</h1>
+  <div class="centre-container">
+    <div id="header">
+      <div id="logo">
+        <h1>ShyftTo</h1>
+      </div>
+      <div id="expiry">
+        <div id="time">
+          <span id="expiresMessage">Expires In</span>
+          <span id="expiresTime">05:35</span>
+        </div>
+        <div id="extend">
+          <button>extend</button>
+        </div>
+      </div>
+    </div>
+    <div id="qrContainer">
+      <div id="qrButton">
+        <div id="qrCamera">
+          Camera
+        </div>
+        <div id="qrHelp">
+          What is this?
+        </div>
+      </div>
+      <canvas id="qrCode" width=400px height=400px></canvas>
+    </div>
+    <div id="files">
+      <div id="upload">
+        <button disabled id="uploadButton">Upload</button>
+        <div class="hidden">
+          <input id="fileSelector" multiple type="file" />
+        </div>
+      </div>
+      <div class="file title">
+        <div class="filename">
+          Filename
+        </div>
+        <div class="size">
+          Size
+        </div>
+        <div class="type">
+          Type
+        </div>
+        <div class="progress">
+          Status
+        </div>
+        <div class="save">
+          Download
+        </div>
+      </div>
+      <div class="placeholder" id="filesMessage">
+        Connecting...
+      </div>
+      <div class="file" id="file321564895362" style="display:none">
+        <div class="filename">
+          someImage.jpg
+        </div>
+        <div class="size">
+          255Kb
+        </div>
+        <div class="type">
+          Photo
+        </div>
+        <div class="progress">
+          Uploaded
+        </div>
+        <div class="save">
+          <a href="google.com">Download</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
 </body>
+
 </html>

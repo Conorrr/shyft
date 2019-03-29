@@ -1,4 +1,110 @@
 h1 {
+    font-family:Serif;
     font-style: italic;
     font-weight: 100;
+}
+
+div{
+    font-family: Helvetica, Arial, Sans-Serif;
+}
+
+.centre-container {
+    max-width: 1000px;
+    min-width: 600px;
+    margin: 0 auto;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#logo {
+    flex: 1 0 0;
+}
+
+#expiry {
+    visibility: hidden;
+    flex: 1 0 0;
+    padding:5px;
+    text-align: right;
+}
+
+#expiresTime {
+    font-weight: bolder;
+}
+
+#qrContainer {
+    margin: 0 auto;
+    max-width: 500px;
+    width: 100%;
+}
+
+#qrButton {
+    padding:5px 0px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#qrCode {
+    width: 100%;
+    background-color: #333;
+}
+
+/* Files */
+
+#files {
+    margin-top: 60px; 
+}
+
+#upload {
+    padding:5px 0px;
+}
+
+.file {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: #eee;
+}
+
+.hidden {
+    display:none;
+}
+
+#files .placeholder {
+    padding: 10px;
+    background-color: #eee;
+    text-align: center;
+}
+
+.file.title {
+    background-color: #ccc;
+}
+
+.file div{
+    padding: 10px;
+}
+
+.file .filename {
+    flex: 4 0 0;
+}
+.file .size {
+    flex: 1 0 0;
+    text-align: center;
+}
+.file .type {
+    flex: 1 0 0;
+    text-align: center;
+}
+.file .progress {
+    flex: 2 0 0;
+}
+.file .save {
+    flex: 1 0 0;
+    text-align: right;
+}
+.file .save img {
+    height: 20px;
 }

@@ -31,7 +31,7 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
 
   await Promise.all([addSessionPromise, addConnectionPromise]);
 
-  const expiry = session.expiry - Math.floor(new Date().getTime() /1000);
+  const expiry = session.expiry - Math.floor(new Date().getTime() / 1000);
 
   let files = []
   for (fileObj of session.files) {
@@ -39,6 +39,7 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
       files.push({
         id: fileObj.id,
         name: fileObj.filename,
+        type: fileObj.type,
         url: s3.generateGetUrl(sessionId, fileObj.id, expiry),
         size: fileObj.size
       });

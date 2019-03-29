@@ -300,6 +300,15 @@ Resources:
         Rules:
           - ExpirationInDays: 1
             Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - Content-*
+            AllowedMethods:
+              - PUT
+            AllowedOrigins:
+              - http://localhost:8080
+            MaxAge: 3000
   SharedLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:

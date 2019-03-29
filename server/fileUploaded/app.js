@@ -60,12 +60,12 @@ exports.handler = async (event, context) => {
     await s3.deleteObjectByKey(key);
     return { statusCode: 500, body: 'Internal server error' };
   }
-  
+
   // Update session file
   await sessions.updateFile(sessionId, fileIndex, fileId, filename, type, "UPLOADED", size);
 
   // Send messages to files
-  const expiry = session.expiry - Math.floor(new Date().getTime() /1000);
+  const expiry = session.expiry - Math.floor(new Date().getTime() / 1000);
   const downloadUrl = s3.generateGetUrl(sessionId, fileId, expiry);
 
   let newFileMessagePromises = [];
@@ -73,14 +73,15 @@ exports.handler = async (event, context) => {
   console.log(JSON.stringify(session.connections));
 
   for (connectionId of session.connections.values) {
-    const messageBody =  {
-      type   : "newFile",
-      id     : fileId,
-      name   : filename,
-      url    : downloadUrl,
-      size   : size
+    const messageBody = {
+      type: "newFile",
+      id: fileId,
+      name: filename,
+      fileType: type,
+      url: downloadUrl,
+      size: size
     };
-    
+
     newFileMessagePromises.push(ws.send(DOMAIN_NAME, STAGE_NAME, connectionId, messageBody));
   }
 

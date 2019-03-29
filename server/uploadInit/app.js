@@ -12,14 +12,14 @@ function randomId() {
 exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   const uploadInitEvent = JSON.parse(event.body);
   let connectionId = event.requestContext.connectionId;
-  
+
   let files = uploadInitEvent.files;
 
   if (files === undefined || !Array.isArray(files) || files.length < 1) {
     await wsSend(errors.errorMessageBody(errors.codes.INVALID_REQUEST));
     return;
   }
-  
+
   // Get SessionId
   let connectionDetails = (await connections.getConnectionDetails(connectionId)).Item;
 
@@ -33,7 +33,7 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   // get session
   const session = (await sessions.getSessionDetails(sessionId)).Item;
 
-  if (!session || new Date(session.expiry * 1000) < new Date() ) {
+  if (!session || new Date(session.expiry * 1000) < new Date()) {
     if (!session) {
       console.log(`session not found ${sessionId}`);
     } else {
@@ -52,25 +52,26 @@ exports.handler = wrapWebSocketMethod(async (event, context, wsSend) => {
   let presignedUrlBody = {};
   let sessionsFiles = [];
 
-  let expires = session.expiry - Math.floor(new Date().getTime() /1000);
+  let expires = session.expiry - Math.floor(new Date().getTime() / 1000);
 
   for (file of files) {
     let fileId = randomId();
     let url = s3.generatePutUrl(sessionId, fileId, file.type, expires);
 
-    presignedUrlBody[file.filename] = {
-      id  : fileId,
-      url : url
+    presignedUrlBody[file.tempId] = {
+      id: fileId,
+      name: file.filename,
+      url: url
     };
 
     sessionsFiles.push({
-      id       : fileId,
-      filename : file.filename,
-      type     : file.type,
-      status   : 'PENDING'
+      id: fileId,
+      filename: file.filename,
+      type: file.type ? file.type: 'None',
+      status: 'PENDING'
     });
   }
-  
+
   await sessions.addFiles(sessionId, sessionsFiles);
-  await wsSend({type: "presignedUrl", presignedUrls: presignedUrlBody});
+  await wsSend({ type: "presignedUrl", presignedUrls: presignedUrlBody });
 });

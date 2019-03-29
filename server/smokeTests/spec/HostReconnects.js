@@ -28,12 +28,12 @@ describe("host is able to reconnect to an existing session", function() {
     hostKey = newSessionMessage.hostKey;
     expiry = newSessionMessage.expiry;
 
-    hostConnection.sendMessage({type:"uploadInit", files:[{filename: "one.jpg", type: "image/jpeg"}]});
+    hostConnection.sendMessage({type:"uploadInit", files:[{filename: "one.jpg", tempId: '55555', type: "image/jpeg"}]});
 
     presignedUrlMessage = await hostConnection.waitForNextMessage();
 
-    fileId = presignedUrlMessage.presignedUrls['one.jpg'].id;
-    filePutUrl = presignedUrlMessage.presignedUrls['one.jpg'].url;
+    fileId = presignedUrlMessage.presignedUrls['55555'].id;
+    filePutUrl = presignedUrlMessage.presignedUrls['55555'].url;
 
     // Load files to be uploaded
     photo = await readFile("spec/resources/photo1.jpg");
@@ -86,6 +86,10 @@ describe("host is able to reconnect to an existing session", function() {
   
   it("id is same as was returned by presignedUrl", () => {
     expect(message.files[0].id).toEqual(fileId);
+  });
+  
+  it("id is same as was returned by presignedUrl", () => {
+    expect(message.files[0].type).toEqual('image/jpeg');
   });
 
   it("the name matches the original of the file", () => {

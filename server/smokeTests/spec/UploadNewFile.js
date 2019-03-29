@@ -146,9 +146,9 @@ describe("basic uploading and sharing functionality", function() {
 
     it("host can request presigned urls for 3 files", async () => {
       hostConnection.sendMessage({type:"uploadInit", files:[
-        {filename: "one.jpg", type: "image/jpeg"},
-        {filename: "two.jpg", type: "image/jpeg"},
-        {filename: "three.jpg", type: "image/jpeg"}
+        {filename: "one.jpg", tempId: '11111', type: "image/jpeg"},
+        {filename: "two.jpg", tempId: '22222', type: "image/jpeg"},
+        {filename: "three.jpg", tempId: '33333', type: "image/jpeg"}
       ]});
 
       presignedUrlMessage = await hostConnection.waitForNextMessage();
@@ -156,23 +156,26 @@ describe("basic uploading and sharing functionality", function() {
     });
 
     it("message contains generated link and id for each filename", () => {
-      let file1 = presignedUrlMessage.presignedUrls['one.jpg'];
-      let file2 = presignedUrlMessage.presignedUrls['two.jpg'];
-      let file3 = presignedUrlMessage.presignedUrls['three.jpg'];
+      let file1 = presignedUrlMessage.presignedUrls['11111'];
+      let file2 = presignedUrlMessage.presignedUrls['22222'];
+      let file3 = presignedUrlMessage.presignedUrls['33333'];
       file1Id = file1.id;
       file1PutUrl = file1.url;
       expect(file1Id).toMatch(/^[0-9a-f]{32}$/);
       expect(file1PutUrl).toMatch(/.*/);
+      expect(file1.name).toEqual('one.jpg');
 
       file2Id = file2.id;
       file2PutUrl = file2.url;
       expect(file2Id).toMatch(/^[0-9a-f]{32}$/);
       expect(file1PutUrl).toMatch(/.*/);
+      expect(file2.name).toEqual('two.jpg');
 
       file3Id = file3.id;
       file3PutUrl = file3.url;
       expect(file3Id).toMatch(/^[0-9a-f]{32}$/);
       expect(file1PutUrl).toMatch(/.*/);
+      expect(file3.name).toEqual('three.jpg');
     })
 
     it("urls can be used to upload files", async () => {
@@ -232,6 +235,12 @@ describe("basic uploading and sharing functionality", function() {
         expect(message2.name).toEqual('two.jpg');
         expect(message3.name).toEqual('three.jpg');
       });
+
+      it("the file type matches the original of the file", () => {
+        expect(message1.fileType).toEqual('image/jpeg');
+        expect(message2.fileType).toEqual('image/jpeg');
+        expect(message3.fileType).toEqual('image/jpeg');
+      });
       
       let fileResponse1;
       let fileResponse2;
@@ -280,7 +289,7 @@ describe("basic uploading and sharing functionality", function() {
   
     it("secondary can request presigned urls for 1 file", async () => {
       secondaryConnection1.sendMessage({type:"uploadInit", files:[
-        {filename: "four.jpg", type: "image/jpeg"},
+        {filename: "four.jpg", tempId: '44444', type: "image/jpeg"},
       ]});
 
       presignedUrlMessage = await secondaryConnection1.waitForNextMessage();
@@ -288,21 +297,18 @@ describe("basic uploading and sharing functionality", function() {
     });
 
     it("message contains generated link and id", () => {
-      let file = presignedUrlMessage.presignedUrls['four.jpg'];
+      let file = presignedUrlMessage.presignedUrls['44444'];
       file4Id = file.id;
       file4PutUrl = file.url;
       expect(file4Id).toMatch(/^[0-9a-f]{32}$/);
       expect(file4PutUrl).toMatch(/.*/);
+      expect(file.name).toEqual('four.jpg');
     })
 
     it("url can be used to upload files", async () => {
       let response = await request({url: file4PutUrl, method: 'PUT', headers: requestHeaders("four.jpg"), body: photo4});
       expect(response.statusCode).toEqual(200);
     });
-
-    // it("try this", async () => {
-      // let message = await secondaryConnection1.waitForNextMessage();
-    // });
   });
 
   describe("Everyone receives the images uploaded by secondaries", () => {
@@ -323,6 +329,10 @@ describe("basic uploading and sharing functionality", function() {
 
       it("the name matches the original of the file", () => {
         expect(message.name).toEqual('four.jpg');
+      });
+
+      it("the file type matches the original of the file", () => {
+        expect(message.fileType).toEqual('image/jpeg');
       });
       
       let fileResponse;
@@ -395,6 +405,13 @@ describe("basic uploading and sharing functionality", function() {
         expect(message.files[1].name).toEqual('two.jpg');
         expect(message.files[2].name).toEqual('three.jpg');
         expect(message.files[3].name).toEqual('four.jpg');
+      });
+
+      it("the file type matches the original of the file", () => {
+        expect(message.files[0].type).toEqual('image/jpeg');
+        expect(message.files[1].type).toEqual('image/jpeg');
+        expect(message.files[2].type).toEqual('image/jpeg');
+        expect(message.files[3].type).toEqual('image/jpeg');
       });
       
       let fileResponse1;

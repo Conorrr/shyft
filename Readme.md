@@ -64,6 +64,7 @@ file:
 |-------|----------|----------------------------------|
 | id    | String   | Globally unique id for the file. |
 | name  | String   | Original name of the file.       |
+| type  | String   | MIME type of the file.           |
 | size  | Number   | Size of the file in bytes.       |
 
 #### Upload Init (uploadInit) (Host/Seconadary) (Client)
@@ -78,6 +79,7 @@ Request contains a list of objects containing filename and filetype for each fil
 
 | field     | type    | description                                                       |
 |-----------|---------|-------------------------------------------------------------------|
+| tempId    | String  | Id to temporarily identify the file                               |
 | filename  | String  | Original name of the file.                                        |
 | type      | String  | Original content type of the file.                                |
 
@@ -87,23 +89,25 @@ Contains map (presignedUrls) of filenames to objects containing presigned urls a
 
 | field         | type | description                                               |
 |---------------|------|-----------------------------------------------------------|
-| presignedUrls | Map  | Map of filenames to urls that can be used to upload files |
+| presignedUrls | Map  | Map of tempId to urls that can be used to upload files    |
 
 | field    | type     | description                            |
 |----------|----------|----------------------------------------|
-| id       | String   | Globally unique is for the file        |
-| url      | String   | url that the new file should be PUT at |
+| id       | String   | Globally unique id for the file        |
+| name     | String   | Original name of the file.             |
+| url      | String   | url that the new file should be PUT to |
 
 #### New File (newFile) (Host/Secondary) (Server)
 
 Sent for each new file uploaded to all clients. Even the client who uploaded the file.
 
-| field | type     | description                                |
-|-------|----------|--------------------------------------------|
-| id    | String   | Globally unique id for the file.           |
-| name  | String   | Original name of the file.                 |
-| url   | String   | Url that can be used to download the file. |
-| size  | Number   | Size of the file in bytes.                 |
+| field    | type     | description                                |
+|----------|----------|--------------------------------------------|
+| id       | String   | Globally unique id for the file.           |
+| name     | String   | Original name of the file.                 |
+| fileType | String   | MIME type of the file.                     |
+| url      | String   | Url that can be used to download the file. |
+| size     | Number   | Size of the file in bytes.                 |
 
 #### Extend Session (extend) (Host) (Client)
 
