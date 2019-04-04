@@ -1,7 +1,8 @@
 {
-  "name": "new-session",
+  "name": "file-uploaded",
   "version": "1.0.0",
-  "description": "Handle newSession message.",
+  "private": true,
+  "description": "Handle fileUploaded S3 trigger.",
   "main": "src/app.js",
   "dependencies": {
     "aws-sdk": "^2.418.0"

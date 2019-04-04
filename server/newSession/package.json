@@ -1,6 +1,7 @@
 {
   "name": "new-session",
   "version": "1.0.0",
+  "private": true,
   "description": "Handle newSession message.",
   "main": "src/app.js",
   "dependencies": {

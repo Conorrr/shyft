@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - echo Entered the install phase...
+      - npm install --global lerna 
+      - lerna bootstrap --concurrency=1 -- --production
+  build:
+    commands:
+      - cd static-web
+      - npm run build
+artifacts:
+  files:
+    - server/**/*
+    - static-web/dist/*

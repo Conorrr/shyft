@@ -1,6 +1,7 @@
 {
   "name": "on-connect",
   "version": "1.0.0",
+  "private": true,
   "description": "Lambda function that triggers on connect.",
   "main": "src/app.js",
   "dependencies": {

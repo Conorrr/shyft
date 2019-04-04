@@ -1,7 +1,8 @@
 {
-  "name": "new-session",
+  "name": "delete-file",
   "version": "1.0.0",
-  "description": "Handle newSession message.",
+  "private": true,
+  "description": "Handle deleteFile message.",
   "main": "src/app.js",
   "dependencies": {
     "aws-sdk": "^2.418.0"
